@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef STATIC_ASSERT_HH_INCLUDED
@@ -9,20 +10,19 @@
 
 namespace StaticAssert {
 
-template < bool >
+template <bool>
 struct AssertionFailure;
 
 template <>
-struct AssertionFailure< true >
-{};
+struct AssertionFailure<true> {};
 
-template< int > struct Test
-{};
+template <int>
+struct Test {};
 }
 
-#define STATIC_ASSERT( B ) \
-  typedef ::StaticAssert::Test< \
-    sizeof( ::StaticAssert::AssertionFailure< bool( B ) > ) >\
-      static_assert_typedef_ ## __LINE__
+#define STATIC_ASSERT(B)                          \
+  typedef ::StaticAssert::Test<sizeof(            \
+      ::StaticAssert::AssertionFailure<bool(B)>)> \
+      static_assert_typedef_##__LINE__
 
 #endif

@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef CHUNK_INDEX_HH_INCLUDED
@@ -34,96 +35,89 @@ using std::vector;
 /// 64-bit ones, we need to define this. Our keys should have more or less
 /// uniform bit distribution, so on 32-bit systems returning the lower 32 bits
 /// should be fine
-namespace __gnu_cxx
-{
-  template<>
-  struct hash< unsigned long long >
-  {
-    size_t operator()( unsigned long long v ) const
-    { return v; }
-  };
+namespace __gnu_cxx {
+template <>
+struct hash<unsigned long long> {
+  size_t operator()(unsigned long long v) const { return v; }
+};
 }
 
-class IndexProcessor
-{
-public:
-  virtual void startIndex( string const & ) = 0;
-  virtual void startBundle( Bundle::Id const & ) = 0;
-  virtual void processChunk( ChunkId const &, uint32_t ) = 0;
-  virtual void finishBundle( Bundle::Id const &, BundleInfo const & ) = 0;
-  virtual void finishIndex( string const & ) = 0;
+class IndexProcessor {
+ public:
+  virtual void startIndex(string const &) = 0;
+  virtual void startBundle(Bundle::Id const &) = 0;
+  virtual void processChunk(ChunkId const &, uint32_t) = 0;
+  virtual void finishBundle(Bundle::Id const &, BundleInfo const &) = 0;
+  virtual void finishIndex(string const &) = 0;
 };
 
 /// Maintains an in-memory hash table allowing to check whether we have a
 /// specific chunk or not, and if we do, get the bundle id it's in
-class ChunkIndex: NoCopy, IndexProcessor
-{
-  struct Chain
-  {
+class ChunkIndex : NoCopy, IndexProcessor {
+  struct Chain {
     ChunkId::CryptoHashPart cryptoHash;
     uint32_t size;
-    Chain * next;
-    Bundle::Id const * bundleId;
+    Chain *next;
+    Bundle::Id const *bundleId;
 
-    Chain( ChunkId const &, uint32_t, Bundle::Id const * bundleId );
+    Chain(ChunkId const &, uint32_t, Bundle::Id const *bundleId);
 
-    bool equalsTo( ChunkId const & id );
+    bool equalsTo(ChunkId const &id);
   };
 
   /// This hash map stores all known chunk ids
   /// TODO: implement a custom hash table for better performance
-  typedef __gnu_cxx::hash_map< RollingHash::Digest, Chain * > HashTable;
+  typedef __gnu_cxx::hash_map<RollingHash::Digest, Chain *> HashTable;
 
-  EncryptionKey const & key;
-  TmpMgr & tmpMgr;
+  EncryptionKey const &key;
+  TmpMgr &tmpMgr;
   string indexPath;
   AppendAllocator storage;
 
   HashTable hashTable;
 
   /// Stores the last used bundle id, which can be re-used
-  Bundle::Id const * lastBundleId;
+  Bundle::Id const *lastBundleId;
 
-public:
-  DEF_EX( Ex, "Chunk index exception", std::exception )
-  DEF_EX( exIncorrectChunkIdSize, "Incorrect chunk id size encountered", Ex )
+ public:
+  DEF_EX(Ex, "Chunk index exception", std::exception)
+  DEF_EX(exIncorrectChunkIdSize, "Incorrect chunk id size encountered", Ex)
 
-  ChunkIndex( EncryptionKey const &, TmpMgr &, string const & indexPath, bool );
+  ChunkIndex(EncryptionKey const &, TmpMgr &, string const &indexPath, bool);
 
-  struct ChunkInfoInterface
-  {
+  struct ChunkInfoInterface {
     /// Returns the full id of the chunk. This function is only called if that
     /// full id is actually needed, as its generation requires the expensive
     /// calculation of the full hash
-    virtual ChunkId const & getChunkId()=0;
+    virtual ChunkId const &getChunkId() = 0;
     virtual ~ChunkInfoInterface() {}
   };
 
   /// If the given chunk exists, its bundle id is returned, otherwise NULL
-  Bundle::Id const * findChunk( ChunkId::RollingHashPart,
-                                ChunkInfoInterface &, uint32_t *size = NULL );
+  Bundle::Id const *findChunk(ChunkId::RollingHashPart, ChunkInfoInterface &,
+                              uint32_t *size = NULL);
 
   /// If the given chunk exists, its bundle id is returned, otherwise NULL
-  Bundle::Id const * findChunk( ChunkId const &, uint32_t *size = NULL );
+  Bundle::Id const *findChunk(ChunkId const &, uint32_t *size = NULL);
 
   /// Adds a new chunk to the index if it did not exist already. Returns true
   /// if added, false if existed already
-  bool addChunk( ChunkId const &, uint32_t, Bundle::Id const & );
+  bool addChunk(ChunkId const &, uint32_t, Bundle::Id const &);
 
-  void startIndex( string const & );
-  void startBundle( Bundle::Id const & );
-  void processChunk( ChunkId const &, uint32_t );
-  void finishBundle( Bundle::Id const &, BundleInfo const & );
-  void finishIndex( string const & );
+  void startIndex(string const &);
+  void startBundle(Bundle::Id const &);
+  void processChunk(ChunkId const &, uint32_t);
+  void finishBundle(Bundle::Id const &, BundleInfo const &);
+  void finishIndex(string const &);
 
-  void loadIndex( IndexProcessor & );
+  void loadIndex(IndexProcessor &);
 
   size_t size();
 
-private:
+ private:
   /// Inserts new chunk id into the in-memory hash table. Returns the created
   /// Chain if it was inserted, NULL if it existed before
-  Chain * registerNewChunkId( ChunkId const & id, uint32_t, Bundle::Id const * );
+  Chain *registerNewChunkId(ChunkId const &id, uint32_t, Bundle::Id const *);
 };
 
 #endif

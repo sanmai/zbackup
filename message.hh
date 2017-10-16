@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef MESSAGE_HH_INCLUDED
@@ -14,9 +15,9 @@
 /// Some utilities for protobuffer messages
 namespace Message {
 
-DEF_EX( Ex, "Message exception", std::exception )
-DEF_EX_STR( exCantParse, "Can't parse message", Ex )
-DEF_EX_STR( exCantSerialize, "Can't serialize message", Ex )
+DEF_EX(Ex, "Message exception", std::exception)
+DEF_EX_STR(exCantParse, "Can't parse message", Ex)
+DEF_EX_STR(exCantSerialize, "Can't serialize message", Ex)
 
 using google::protobuf::io::ZeroCopyOutputStream;
 using google::protobuf::io::ZeroCopyInputStream;
@@ -25,16 +26,16 @@ using google::protobuf::io::CodedOutputStream;
 using google::protobuf::MessageLite;
 
 /// Serializes the given message to the given zero-copy stream
-void serialize( MessageLite const &, ZeroCopyOutputStream & );
+void serialize(MessageLite const &, ZeroCopyOutputStream &);
 
 /// Serializes the given message to the given coded stream
-void serialize( MessageLite const &, CodedOutputStream & );
+void serialize(MessageLite const &, CodedOutputStream &);
 
 /// Reads and parses the given message from the given zero-copy stream
-void parse( MessageLite &, ZeroCopyInputStream & );
+void parse(MessageLite &, ZeroCopyInputStream &);
 
 /// Reads and parses the given message from the given coded stream
-void parse( MessageLite &, CodedInputStream & );
+void parse(MessageLite &, CodedInputStream &);
 }
 
 #endif

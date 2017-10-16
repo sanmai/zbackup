@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef CHECK_HH_INCLUDED
@@ -15,24 +16,25 @@
 
 // TODO: show the backtrace here, without using __FILE__ __LINE__
 
-#define CHECK( condition, message, ... ) ({if (!(condition)) \
-{ \
-  fprintf( stderr, "Check failed: " ); \
-  fprintf( stderr, message, ##__VA_ARGS__ ); \
-  fprintf( stderr, "\nAt %s:%d\n", __FILE__, __LINE__ ); \
-  abort(); \
-}})
+#define CHECK(condition, message, ...)                     \
+  ({                                                       \
+    if (!(condition)) {                                    \
+      fprintf(stderr, "Check failed: ");                   \
+      fprintf(stderr, message, ##__VA_ARGS__);             \
+      fprintf(stderr, "\nAt %s:%d\n", __FILE__, __LINE__); \
+      abort();                                             \
+    }                                                      \
+  })
 
-#define FAIL( ... ) CHECK( false, __VA_ARGS__ )
-
+#define FAIL(...) CHECK(false, __VA_ARGS__)
 
 // Debug-only versions. Only instantiated in debug builds
 #ifndef NDEBUG
 #define DCHECK CHECK
 #define DFAIL FAIL
 #else
-#define DCHECK( ... )
-#define DFAIL( ... )
+#define DCHECK(...)
+#define DFAIL(...)
 #endif
 
 #endif

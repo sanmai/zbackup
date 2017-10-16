@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef ENCRYPTED_FILE_HH_INCLUDED
@@ -27,30 +28,29 @@
 /// everything else works the same way otherwise
 namespace EncryptedFile {
 
-DEF_EX( Ex, "Encrypted file exception", std::exception )
-DEF_EX( exFileCorrupted, "encrypted file data is currupted", Ex )
-DEF_EX( exIncorrectFileSize, "size of the encrypted file is incorrect", exFileCorrupted )
-DEF_EX( exReadFailed, "read failed", Ex ) // Only thrown by InputStream::read()
-DEF_EX( exAdlerMismatch, "adler32 mismatch", Ex )
+DEF_EX(Ex, "Encrypted file exception", std::exception)
+DEF_EX(exFileCorrupted, "encrypted file data is currupted", Ex)
+DEF_EX(exIncorrectFileSize, "size of the encrypted file is incorrect",
+       exFileCorrupted)
+DEF_EX(exReadFailed, "read failed", Ex)  // Only thrown by InputStream::read()
+DEF_EX(exAdlerMismatch, "adler32 mismatch", Ex)
 
-class InputStream: public google::protobuf::io::ZeroCopyInputStream
-{
-public:
+class InputStream : public google::protobuf::io::ZeroCopyInputStream {
+ public:
   /// Opens the input file. If EncryptionKey contains no key, the input won't be
   /// decrypted and iv would be ignored
-  InputStream( char const * fileName, EncryptionKey const &, void const * iv );
-  virtual bool Next( void const ** data, int * size );
-  virtual void BackUp( int count );
-  virtual bool Skip( int count );
+  InputStream(char const *fileName, EncryptionKey const &, void const *iv);
+  virtual bool Next(void const **data, int *size);
+  virtual void BackUp(int count);
+  virtual bool Skip(int count);
   virtual int64_t ByteCount() const;
-
 
   /// Returns adler32 of all data read so far. Calling this makes backing up
   /// for the previous Next() call impossible - the data has to be consumed
   Adler32::Value getAdler32();
 
   /// Performs a traditional read, for convenience purposes
-  void read( void * buf, size_t size );
+  void read(void *buf, size_t size);
 
   /// Reads an adler32 value from the stream and compares with checkAdler32().
   /// Throws an exception on mismatch
@@ -64,19 +64,19 @@ public:
   /// Closes the file
   ~InputStream() {}
 
-private:
+ private:
   UnbufferedFile file;
   UnbufferedFile::Offset filePos;
-  EncryptionKey const & key;
-  char iv[ Encryption::IvSize ];
-  std::vector< char > buffer;
-  char * start; /// Points to the start of the data currently held in buffer
-  size_t fill; /// Number of bytes held in buffer
-  size_t remainder; /// Number of bytes held in buffer just after the main
-                    /// 'fill'-bytes portion. We have to keep those to implement
-                    /// PKCS#7 padding
-  bool backedUp; /// True if the BackUp operation was performed, and the buffer
-                 /// contents are therefore unconsumed
+  EncryptionKey const &key;
+  char iv[Encryption::IvSize];
+  std::vector<char> buffer;
+  char *start;  /// Points to the start of the data currently held in buffer
+  size_t fill;  /// Number of bytes held in buffer
+  size_t remainder;  /// Number of bytes held in buffer just after the main
+  /// 'fill'-bytes portion. We have to keep those to implement
+  /// PKCS#7 padding
+  bool backedUp;  /// True if the BackUp operation was performed, and the buffer
+                  /// contents are therefore unconsumed
   Adler32 adler32;
 
   /// Decrypts 'fill' bytes at 'start', adjusting 'fill' and setting 'remainder'
@@ -85,14 +85,13 @@ private:
   void doDecrypt();
 };
 
-class OutputStream: public google::protobuf::io::ZeroCopyOutputStream
-{
-public:
+class OutputStream : public google::protobuf::io::ZeroCopyOutputStream {
+ public:
   /// Creates the output file. If EncryptionKey contains no key, the output
   /// won't be encrypted and iv would be ignored
-  OutputStream( char const * fileName, EncryptionKey const &, void const * iv );
-  virtual bool Next( void ** data, int * size );
-  virtual void BackUp( int count );
+  OutputStream(char const *fileName, EncryptionKey const &, void const *iv);
+  virtual bool Next(void **data, int *size);
+  virtual void BackUp(int count);
   virtual int64_t ByteCount() const;
 
   /// Returns adler32 of all data written so far. Calling this makes backing up
@@ -100,7 +99,7 @@ public:
   Adler32::Value getAdler32();
 
   /// Performs a traditional write, for convenience purposes
-  void write( void const * buf, size_t size );
+  void write(void const *buf, size_t size);
 
   /// Writes the current adler32 value returned by getAdler32() to the stream
   void writeAdler32();
@@ -114,24 +113,23 @@ public:
   /// Finishes writing and closes the file
   ~OutputStream();
 
-private:
+ private:
   UnbufferedFile file;
   UnbufferedFile::Offset filePos;
-  EncryptionKey const & key;
-  char iv[ Encryption::IvSize ];
-  std::vector< char > buffer;
-  char * start; /// Points to the start of the area currently available for
-                /// writing to in buffer
-  size_t avail; /// Number of bytes available for writing to in buffer
-  bool backedUp; /// True if the BackUp operation was performed, and the buffer
-                 /// contents are therefore unconsumed
+  EncryptionKey const &key;
+  char iv[Encryption::IvSize];
+  std::vector<char> buffer;
+  char *start;    /// Points to the start of the area currently available for
+                  /// writing to in buffer
+  size_t avail;   /// Number of bytes available for writing to in buffer
+  bool backedUp;  /// True if the BackUp operation was performed, and the buffer
+                  /// contents are therefore unconsumed
   Adler32 adler32;
 
   /// Encrypts and writes 'bytes' bytes from the beginning of the buffer.
   /// 'bytes' must be non-zero and in multiples of BlockSize
-  void encryptAndWrite( size_t bytes );
+  void encryptAndWrite(size_t bytes);
 };
-
 }
 
 #endif

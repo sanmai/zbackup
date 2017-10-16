@@ -1,11 +1,12 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef ROLLING_HASH_HH_INCLUDED
 #define ROLLING_HASH_HH_INCLUDED
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 // Modified Rabin-Karp rolling hash with the base of 257 and the modulo of 2^64.
 
@@ -37,45 +38,38 @@
 
 // Note: ( a = ( a << 8 ) + a ) is equivalent to ( a *= 257 )
 
-class RollingHash
-{
+class RollingHash {
   uint64_t factor;
   uint64_t nextFactor;
   uint64_t value;
   size_t count;
 
-public:
+ public:
   typedef uint64_t Digest;
 
   RollingHash();
 
   void reset();
 
-  void rollIn( char c )
-  {
+  void rollIn(char c) {
     factor = nextFactor;
-    nextFactor = ( nextFactor << 8 ) + nextFactor; // nextFactor *= 257
-    value = ( value << 8 ) + value;
-    value += ( unsigned char ) c;
+    nextFactor = (nextFactor << 8) + nextFactor;  // nextFactor *= 257
+    value = (value << 8) + value;
+    value += (unsigned char)c;
     ++count;
   }
 
-  void rotate( char in, char out )
-  {
-    value -= uint64_t( ( unsigned char ) out ) * factor;
-    value = ( value << 8 ) + value; // value *= 257
-    value += ( unsigned char ) in;
+  void rotate(char in, char out) {
+    value -= uint64_t((unsigned char)out) * factor;
+    value = (value << 8) + value;  // value *= 257
+    value += (unsigned char)in;
   }
 
-  Digest digest() const
-  {
-    return value + nextFactor;
-  }
+  Digest digest() const { return value + nextFactor; }
 
-  size_t size() const
-  { return count; }
+  size_t size() const { return count; }
 
-  static Digest digest( void const * buf, unsigned size );
+  static Digest digest(void const *buf, unsigned size);
 };
 
 #endif

@@ -1,4 +1,5 @@
-// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup contributors, see CONTRIBUTORS
+// Copyright (c) 2012-2014 Konstantin Isakov <ikm@zbackup.org> and ZBackup
+// contributors, see CONTRIBUTORS
 // Part of ZBackup. Licensed under GNU GPLv2 or later + OpenSSL, see LICENSE
 
 #ifndef CHUNK_STORAGE_HH_INCLUDED
@@ -13,6 +14,7 @@
 #include "bundle.hh"
 #include "chunk_id.hh"
 #include "chunk_index.hh"
+#include "config.hh"
 #include "encryption_key.hh"
 #include "ex.hh"
 #include "file.hh"
@@ -23,7 +25,6 @@
 #include "sptr.hh"
 #include "tmp_mgr.hh"
 #include "zbackup.pb.h"
-#include "config.hh"
 
 namespace ChunkStorage {
 
@@ -31,26 +32,25 @@ using std::string;
 using std::vector;
 using std::pair;
 
-DEF_EX( Ex, "Chunk storage exception", std::exception )
+DEF_EX(Ex, "Chunk storage exception", std::exception)
 
 /// Allows adding new chunks to the storage by filling up new bundles with them
 /// and writing new index files
-class Writer: NoCopy
-{
-public:
+class Writer : NoCopy {
+ public:
   /// All new bundles and index files are created as temp files. Call commit()
   /// to move them to their permanent locations. commit() is never called
   /// automatically!
-  Writer( Config const &, EncryptionKey const &,
-          TmpMgr &, ChunkIndex & index, string const & bundlesDir,
-          string const & indexDir, size_t maxCompressorsToRun );
+  Writer(Config const &, EncryptionKey const &, TmpMgr &, ChunkIndex &index,
+         string const &bundlesDir, string const &indexDir,
+         size_t maxCompressorsToRun);
 
   /// Adds the given chunk to the store. If such a chunk has already existed
   /// in the index, does nothing and returns false
-  bool add( ChunkId const &, void const * data, size_t size );
+  bool add(ChunkId const &, void const *data, size_t size);
 
   /// Adds an existing bundle to the index
-  void addBundle( BundleInfo const &, Bundle::Id const & bundleId );
+  void addBundle(BundleInfo const &, Bundle::Id const &bundleId);
 
   /// Commits all newly created bundles. Must be called before destroying the
   /// object -- otherwise all work will be removed from the temp dir and lost
@@ -61,19 +61,20 @@ public:
 
   ~Writer();
 
-private:
+ private:
   /// Performs the compression in a separate thread. Destroys itself once done
-  class Compressor: public Thread
-  {
-    Writer & writer;
-    sptr< Bundle::Creator > bundleCreator;
+  class Compressor : public Thread {
+    Writer &writer;
+    sptr<Bundle::Creator> bundleCreator;
     string fileName;
-    Config const & config;
-  public:
-    Compressor( Config const &, Writer &, sptr< Bundle::Creator > const &,
-                string const & fileName );
-  protected:
-    virtual void * threadFunction() throw();
+    Config const &config;
+
+   public:
+    Compressor(Config const &, Writer &, sptr<Bundle::Creator> const &,
+               string const &fileName);
+
+   protected:
+    virtual void *threadFunction() throw();
   };
 
   friend class Compressor;
@@ -81,10 +82,10 @@ private:
   /// Returns the id of the currently written bundle. If there's none, generates
   /// one. If a bundle hasn't yet started, still generates it - once the bundle
   /// is started, it will be used then
-  Bundle::Id const & getCurrentBundleId();
+  Bundle::Id const &getCurrentBundleId();
 
   /// Returns *currentBundle or creates a new one
-  Bundle::Creator & getCurrentBundle();
+  Bundle::Creator &getCurrentBundle();
 
   /// Writes the current bundle and deallocates it
   void finishCurrentBundle();
@@ -92,15 +93,15 @@ private:
   /// Wait for all compressors to finish
   void waitForAllCompressorsToFinish();
 
-  Config const & config;
-  EncryptionKey const & encryptionKey;
-  TmpMgr & tmpMgr;
-  ChunkIndex & index;
+  Config const &config;
+  EncryptionKey const &encryptionKey;
+  TmpMgr &tmpMgr;
+  ChunkIndex &index;
   string bundlesDir, indexDir;
-  sptr< TemporaryFile > indexTempFile;
-  sptr< IndexFile::Writer > indexFile;
+  sptr<TemporaryFile> indexTempFile;
+  sptr<IndexFile::Writer> indexFile;
 
-  sptr< Bundle::Creator > currentBundle;
+  sptr<Bundle::Creator> currentBundle;
   Bundle::Id currentBundleId;
   bool hasCurrentBundleId;
 
@@ -110,38 +111,36 @@ private:
   size_t runningCompressors;
 
   /// Maps temp file of the bundle to its id blob
-  typedef pair< sptr< TemporaryFile >, Bundle::Id > PendingBundleRename;
-  vector< PendingBundleRename > pendingBundleRenames;
+  typedef pair<sptr<TemporaryFile>, Bundle::Id> PendingBundleRename;
+  vector<PendingBundleRename> pendingBundleRenames;
 };
 
 /// Allows retrieving existing chunks by extracting them from the bundles with
 /// the help of an Index object
-class Reader: NoCopy
-{
-public:
-  DEF_EX_STR( exNoSuchChunk, "no such chunk found:", Ex )
+class Reader : NoCopy {
+ public:
+  DEF_EX_STR(exNoSuchChunk, "no such chunk found:", Ex)
 
-  Reader( Config const &, EncryptionKey const &, ChunkIndex & index,
-          string const & bundlesDir, size_t maxCacheSizeBytes );
+  Reader(Config const &, EncryptionKey const &, ChunkIndex &index,
+         string const &bundlesDir, size_t maxCacheSizeBytes);
 
-  Bundle::Id const * getBundleId( ChunkId const &, size_t & size );
+  Bundle::Id const *getBundleId(ChunkId const &, size_t &size);
 
   /// Loads the given chunk from the store into the given buffer. May throw file
   /// and decompression exceptions. 'data' may be enlarged but won't be shrunk.
   /// The size of the actual chunk would be stored in 'size'
-  void get( ChunkId const &, string & data, size_t & size );
+  void get(ChunkId const &, string &data, size_t &size);
 
   /// Retrieves the reader for the given bundle id. May employ caching
-  Bundle::Reader & getReaderFor( Bundle::Id const & );
+  Bundle::Reader &getReaderFor(Bundle::Id const &);
 
-private:
-  Config const & config;
-  EncryptionKey const & encryptionKey;
-  ChunkIndex & index;
+ private:
+  Config const &config;
+  EncryptionKey const &encryptionKey;
+  ChunkIndex &index;
   string bundlesDir;
   ObjectCache cachedReaders;
 };
-
 }
 
 #endif
